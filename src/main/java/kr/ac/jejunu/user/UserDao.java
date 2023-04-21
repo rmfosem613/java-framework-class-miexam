@@ -17,15 +17,18 @@ public class UserDao {
         User user = null;
         try {
             connection = dataSource.getConnection();
-            preparedStatement = connection.prepareStatement("select id, name, password from userinfo where id = ?");
-            preparedStatement.setLong(1, id);
+            StagementStrategy stagementStrategy = new GetStatementStrategy();
+            preparedStatement = stagementStrategy.makeStatement(id, connection);
+
             resultSet = preparedStatement.executeQuery();
-            if(resultSet.next()) {
+
+            if (resultSet.next()) {
                 user = new User();
                 user.setId(resultSet.getLong("id"));
                 user.setName(resultSet.getString("name"));
                 user.setPassword(resultSet.getString("password"));
             }
+
         } finally {
             try {
                 resultSet.close();
@@ -43,8 +46,6 @@ public class UserDao {
                 e.printStackTrace();
             }
         }
-
-
         return user;
     }
 
@@ -54,15 +55,13 @@ public class UserDao {
         ResultSet resultSet = null;
         try {
             connection = dataSource.getConnection();
-            preparedStatement = connection.prepareStatement(
-                    "insert into userinfo (name, password) values (?,?)",
-                    Statement.RETURN_GENERATED_KEYS);
-            preparedStatement.setString(1, user.getName());
-            preparedStatement.setString(2, user.getPassword());
+
+            StagementStrategy stagementStrategy = new InsertStatementStrategy();
+            preparedStatement = stagementStrategy.makeStatement(user, connection);
             preparedStatement.executeUpdate();
             resultSet = preparedStatement.getGeneratedKeys();
             resultSet.next();
-            user.setId(resultSet.getLong("id"));
+            user.setId(resultSet.getLong(1));
         } finally {
             try {
                 resultSet.close();
@@ -87,11 +86,8 @@ public class UserDao {
         PreparedStatement preparedStatement = null;
         try {
             connection = dataSource.getConnection();
-            preparedStatement = connection.prepareStatement(
-                    "update userinfo set name = ?, password = ? where id = ?");
-            preparedStatement.setString(1, user.getName());
-            preparedStatement.setString(2, user.getPassword());
-            preparedStatement.setLong(3, user.getId());
+            StagementStrategy stagementStrategy = new UpdateStatementStrategy();
+            preparedStatement = stagementStrategy.makeStatement(user, connection);
             preparedStatement.executeUpdate();
         } finally {
             try {
@@ -112,9 +108,8 @@ public class UserDao {
         PreparedStatement preparedStatement = null;
         try {
             connection = dataSource.getConnection();
-            preparedStatement = connection.prepareStatement(
-                    "delete from userinfo where id = ?");
-            preparedStatement.setLong(1, id);
+            StagementStrategy stagementStrategy = new DeleteStatementStrategy();
+            preparedStatement = stagementStrategy.makeStatement(id, connection);
             preparedStatement.executeUpdate();
         } finally {
             try {
