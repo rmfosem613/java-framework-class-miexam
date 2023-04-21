@@ -10,22 +10,46 @@ public class UserDao {
     }
 
     public User findById(Long id) throws SQLException {
-        StagementStrategy stagementStrategy = new GetStatementStrategy(id);
+        StagementStrategy stagementStrategy = connection -> {
+            PreparedStatement preparedStatement = connection.prepareStatement("select id, name, password from userinfo where id = ?");
+            preparedStatement.setLong(1, id);
+            return preparedStatement;
+        };
         return jdbcContext.jdbcContextForGet(stagementStrategy);
     }
 
     public void insert(User user) throws SQLException {
-        StagementStrategy stagementStrategy = new InsertStatementStrategy(user);
+        StagementStrategy stagementStrategy = connection -> {
+            PreparedStatement preparedStatement = connection.prepareStatement(
+                    "insert into userinfo (name, password) values (?,?)",
+                    Statement.RETURN_GENERATED_KEYS);
+            preparedStatement.setString(1, user.getName());
+            preparedStatement.setString(2, user.getPassword());
+            return preparedStatement;
+        };
         jdbcContext.jdbcContextForInsert(user, stagementStrategy);
     }
 
     public void update(User user) throws SQLException {
-        StagementStrategy stagementStrategy = new UpdateStatementStrategy(user);
+        StagementStrategy stagementStrategy = connection -> {
+            PreparedStatement preparedStatement = connection.prepareStatement(
+                    "update userinfo set name = ?, password = ? where id = ?");
+            preparedStatement.setString(1, user.getName());
+            preparedStatement.setString(2, user.getPassword());
+            preparedStatement.setLong(3, user.getId());
+
+            return preparedStatement;
+        };
         jdbcContext.jdbcContextForUpdate(stagementStrategy);
     }
 
     public void delete(Long id) throws SQLException {
-        StagementStrategy stagementStrategy = new DeleteStatementStrategy(id);
+        StagementStrategy stagementStrategy = connection -> {
+            PreparedStatement preparedStatement = connection.prepareStatement(
+                    "delete from userinfo where id = ?");
+            preparedStatement.setLong(1, id);
+            return preparedStatement;
+        };
         jdbcContext.jdbcContextForUpdate(stagementStrategy);
     }
 }
