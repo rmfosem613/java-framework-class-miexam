@@ -10,19 +10,23 @@ import java.sql.Driver;
 
 @Configuration
 public class DaoFactory {
-
-    @Value("{db.classname}")
+    @Value("${db.classname}")
     private String className;
-    @Value("{db.url}")
+    @Value("${db.url}")
     private String url;
-    @Value("{db.username}")
+    @Value("${db.username}")
     private String username;
-    @Value("{db.password}")
+    @Value("${db.password}")
     private String password;
 
     @Bean
-    public UserDao getUserDao() {
-        return new UserDao(dataSource());
+    public UserDao userDao() {
+        return new UserDao(jdbcContext());
+    }
+
+    @Bean
+    public JdbcContext jdbcContext() {
+        return new JdbcContext(dataSource());
     }
 
     public DataSource dataSource() {
@@ -35,7 +39,6 @@ public class DaoFactory {
         dataSource.setUrl(url);
         dataSource.setUsername(username);
         dataSource.setPassword(password);
-
-        return dataSource();
+        return dataSource;
     }
 }

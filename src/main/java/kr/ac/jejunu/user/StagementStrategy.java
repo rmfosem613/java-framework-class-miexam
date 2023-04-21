@@ -5,5 +5,5 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
 public interface StagementStrategy {
-    PreparedStatement makeStatement(Object object, Connection connection) throws SQLException;
+    PreparedStatement makeStatement(Connection connection) throws SQLException;
 }

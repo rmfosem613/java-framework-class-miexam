@@ -1,127 +1,31 @@
 package kr.ac.jejunu.user;
 
-import javax.sql.DataSource;
 import java.sql.*;
 
 public class UserDao {
-    private final DataSource dataSource;
+    private final JdbcContext jdbcContext;
 
-    public UserDao(DataSource dataSource) {
-        this.dataSource = dataSource;
+    public UserDao(JdbcContext jdbcContext) {
+        this.jdbcContext = jdbcContext;
     }
 
     public User findById(Long id) throws SQLException {
-        Connection connection = null;
-        PreparedStatement preparedStatement = null;
-        ResultSet resultSet = null;
-        User user = null;
-        try {
-            connection = dataSource.getConnection();
-            StagementStrategy stagementStrategy = new GetStatementStrategy();
-            preparedStatement = stagementStrategy.makeStatement(id, connection);
-
-            resultSet = preparedStatement.executeQuery();
-
-            if (resultSet.next()) {
-                user = new User();
-                user.setId(resultSet.getLong("id"));
-                user.setName(resultSet.getString("name"));
-                user.setPassword(resultSet.getString("password"));
-            }
-
-        } finally {
-            try {
-                resultSet.close();
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-            try {
-                preparedStatement.close();
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-            try {
-                connection.close();
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-        }
-        return user;
+        StagementStrategy stagementStrategy = new GetStatementStrategy(id);
+        return jdbcContext.jdbcContextForGet(stagementStrategy);
     }
 
     public void insert(User user) throws SQLException {
-        Connection connection = null;
-        PreparedStatement preparedStatement = null;
-        ResultSet resultSet = null;
-        try {
-            connection = dataSource.getConnection();
-
-            StagementStrategy stagementStrategy = new InsertStatementStrategy();
-            preparedStatement = stagementStrategy.makeStatement(user, connection);
-            preparedStatement.executeUpdate();
-            resultSet = preparedStatement.getGeneratedKeys();
-            resultSet.next();
-            user.setId(resultSet.getLong(1));
-        } finally {
-            try {
-                resultSet.close();
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-            try {
-                preparedStatement.close();
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-            try {
-                connection.close();
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-        }
+        StagementStrategy stagementStrategy = new InsertStatementStrategy(user);
+        jdbcContext.jdbcContextForInsert(user, stagementStrategy);
     }
 
     public void update(User user) throws SQLException {
-        Connection connection = null;
-        PreparedStatement preparedStatement = null;
-        try {
-            connection = dataSource.getConnection();
-            StagementStrategy stagementStrategy = new UpdateStatementStrategy();
-            preparedStatement = stagementStrategy.makeStatement(user, connection);
-            preparedStatement.executeUpdate();
-        } finally {
-            try {
-                preparedStatement.close();
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-            try {
-                connection.close();
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-        }
+        StagementStrategy stagementStrategy = new UpdateStatementStrategy(user);
+        jdbcContext.jdbcContextForUpdate(stagementStrategy);
     }
 
     public void delete(Long id) throws SQLException {
-        Connection connection = null;
-        PreparedStatement preparedStatement = null;
-        try {
-            connection = dataSource.getConnection();
-            StagementStrategy stagementStrategy = new DeleteStatementStrategy();
-            preparedStatement = stagementStrategy.makeStatement(id, connection);
-            preparedStatement.executeUpdate();
-        } finally {
-            try {
-                preparedStatement.close();
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-            try {
-                connection.close();
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-        }
+        StagementStrategy stagementStrategy = new DeleteStatementStrategy(id);
+        jdbcContext.jdbcContextForUpdate(stagementStrategy);
     }
 }
