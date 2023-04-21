@@ -1,5 +1,6 @@
 package kr.ac.jejunu.user;
 
+import org.hamcrest.core.IsNull;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.context.ApplicationContext;
@@ -47,32 +48,39 @@ public class UserDaoTests {
         assertThat(insertedUser.getName(), is(name));
         assertThat(insertedUser.getPassword(), is(password));
     }
-//    @Test
-//    public void getHalla() throws SQLException, ClassNotFoundException {
-//        Long id = 1l;
-//
-//        ConnectionMaker connectionMaker = new HallaConnectionMaker();
-//        UserDao userDao = new UserDao(connectionMaker);
-//        User user = userDao.findById(id);
-//        assertThat(user.getId(), is(id));
-//        assertThat(user.getName(), is(name));
-//        assertThat(user.getPassword(), is(password));
-//    }
-//
-//    @Test
-//    public void insertHalla() throws SQLException, ClassNotFoundException {
-//        User user = new User();
-//        user.setName(name);
-//        user.setPassword(password);
-//
-//        ConnectionMaker connectionMaker = new HallaConnectionMaker();
-//        UserDao userDao = new UserDao(connectionMaker);
-//        userDao.insert(user);
-//        assertThat(user.getId(), greaterThan(1l));
-//
-//        User insertedUser = userDao.findById(user.getId());
-//        assertThat(insertedUser.getId(), is(user.getId()));
-//        assertThat(insertedUser.getName(), is(name));
-//        assertThat(insertedUser.getPassword(), is(password));
-//    }
+
+    @Test
+    public void update() throws SQLException {
+        User user = insertedUser();
+
+        String updatedName = "Migyeong";
+        String updatedPassword = "1111";
+        user.setName(updatedName);
+        user.setPassword(updatedPassword);
+
+        userDao.update(user);
+
+        User updatedUser = userDao.findById(user.getId());
+        assertThat(updatedUser.getName(), is(updatedName));
+        assertThat(updatedUser.getPassword(), is(updatedPassword));
+    }
+
+    @Test
+    public void delete() throws SQLException {
+        User user = insertedUser();
+
+        userDao.delete(user.getId());
+
+        User deletedUser = userDao.findById(user.getId());
+        assertThat(deletedUser, IsNull.nullValue());
+    }
+
+
+    private User insertedUser() {
+        User user = new User();
+        user.setName(name);
+        user.setPassword(password);
+
+        return user;
+    }
 }
